@@ -1,0 +1,53 @@
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+using namespace std;
+
+void bubbleSort(char** arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - 1 - i; j++) {
+            char lastchar1 = arr[j][strlen(arr[j]) - 1];
+            char lastchar2 = arr[j + 1][strlen(arr[j + 1]) - 1];
+            
+            if (lastchar1 > lastchar2) {
+                char* temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int n, m;
+    
+    cout << "請輸入學生人數 n: ";
+    cin >> n;
+    cout << "請輸入姓名的最大長度 m: ";
+    cin >> m;
+    
+    cout << "\n使用 malloc 建立二維動態陣列\n";
+    char** names = (char**) malloc (n * sizeof(char*));
+    for (int i = 0; i < n; i++) {
+        names[i] = (char*) malloc ((m + 1) * sizeof(char));
+    }
+    
+    cout << "請輸入 " << n << " 位學生姓名 (不能超過 " << m << " 字元:\n";
+    for (int i = 0; i < n; i++) {
+        cin >> names[i];
+    }
+    
+    bubbleSort(names, n);
+    
+    cout << "\n排序後的學生名單\n";
+    for (int i = 0; i < n; i++) {
+        cout << names[i] << endl;
+    }
+    
+    for (int i = 0; i < n; i++) {
+        free (names[i]);
+    }
+    free(names);
+    
+    return 0;
+}
