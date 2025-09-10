@@ -1,0 +1,56 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    int x;
+    cout << "請輸入學生人數: ";
+    cin >> x;
+    cin.ignore();
+    
+    string* firstnames = new string[x];
+    string* lastnames = new string[x];
+    int max_first_len = 0;
+    
+    cout << "請輸入 " << x << " 位學生全名: " << endl;
+    for (int i = 0; i < x; ++i) {
+        string fullnames;
+        getline(cin, fullnames);
+        
+        int lastposition = -1;
+       
+        for (int j = fullnames.length() - 1; j >= 0; --j){
+            if (fullnames[j] == ' ') { 
+                lastposition = j;
+                break;
+            }
+        }
+        
+       
+        if (lastposition == -1) {
+            firstnames[i] = ""; 
+            lastnames[i] = fullnames; 
+        } else {
+            firstnames[i] = fullnames.substr(0, lastposition);
+            lastnames[i] = fullnames.substr(lastposition + 1);
+        }
+        
+        if (firstnames[i].length() > max_first_len) {
+            max_first_len = firstnames[i].length();
+        }
+    }
+    
+    cout << "\n--- 輸出資料 ---" << endl;
+    for (int i = 0; i < x; ++i) {
+        int space_to_add = max_first_len - firstnames[i].length();
+        for (int j = 0; j < space_to_add; ++j) {
+            cout << " ";
+        }
+        cout << firstnames[i] << " " << lastnames[i] << endl;
+    }
+    
+    delete[] firstnames;
+    delete[] lastnames;
+    
+    return 0;
+}
