@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdlib>
+using namespace std;
+
+
+class CppArray {
+    private:
+        int size;
+        float* data;
+        
+    public:
+       CppArray (int size = 10, float initValue = 0.0) {
+           this -> size = size;
+           data = new float[size];
+           for (int i = 0; i < size; i++) {
+               data[i] = initValue;
+           }
+       }
+       
+       
+       CppArray (const CppArray &cp2) {
+           size = cp2.size;
+           data = new float[size];
+           for (int i = 0; i < size; i++) {
+               data[i] = cp2.data[i];
+           }
+       }
+    
+    
+       CppArray& operator=(const CppArray &cp2) {
+           delete[] data;
+           size = cp2.size;
+           data = new float[size];
+           for (int i = 0; i < cp2.size; i++) {
+               data[i] = cp2.data[i];
+           }
+           return *this;
+       }
+    
+       
+       ~CppArray() {
+           delete[] data;
+       }
+    
+        
+        float& operator[](int i) {
+            if (i < 0 || i >= size) {
+                cout << "Index out of range!" << endl;
+                exit(1);
+            }
+            return data[i];
+        }
+        
+        
+        friend ostream& operator<<(ostream& out, const CppArray& arr) {
+            out << "{";
+            for (int i = 0; i < arr.size; i++) {
+                out << arr.data[i];
+                if (i < arr.size - 1) {
+                    out << ",";
+                }
+            }
+            out << "}";
+            return out;
+        }
+        
+        
+        friend istream& operator>>(istream& in, CppArray& arr) {
+            for (int i = 0; i < arr.size; i++) {
+                in >> arr.data[i];
+            }
+            return in;
+        }
+};
+
+int main() {
+    CppArray a(5, 1.5);
+    CppArray b = a;
+    CppArray c;
+    c = a;
+    cout << a << endl;
+    cout << b << endl;
+    cout << c << endl;
+    return 0;
+}
