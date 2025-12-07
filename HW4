@@ -1,0 +1,213 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <cstdlib>  // rand()
+#include <iomanip>  // 時間輸出顯示小數點後幾位
+#include <string>   // 加入string標頭檔
+using namespace std;
+
+// 節點
+struct Term {
+    float coef;
+    int exp;
+    Term* link;
+
+    Term(float c, int e, Term* next = nullptr) {
+        coef = c;
+        exp = e;
+        link = next;
+    }
+
+};
+
+// 環狀連結串列
+class Polynomial {
+    private:
+        Term* head;
+
+    public:
+        Polynomial() {
+            head = new Term(0, -1);  // -1當標記
+            head -> link = head;  // 空的環狀串列只回自己
+        }
+
+        // 複製建構子
+        Polynomial(const Polynomial& other) {
+            head = new Term(0, -1);
+            head -> link = head;
+            
+            Term* current = other.head -> link;
+            while (current != other.head) {
+                Attach(current -> coef, current -> exp);
+                current = current -> link;
+            }
+        }
+
+        // 複製賦值運算子
+        Polynomial& operator=(const Polynomial& other) {
+            if (this == &other) return *this;
+            
+            // 清空現有資料
+            Term* current = head -> link;
+            while (current != head) {
+                Term* temp = current;
+                current = current -> link;
+                delete temp;
+            }
+           
+            
+            // 複製新資料
+            current = other.head -> link;
+            while (current != other.head) {
+                Attach(current -> coef, current -> exp);
+                current = current -> link;
+            }
+            
+            return *this;
+        }
+
+        ~Polynomial() {
+            if(!head) return;
+
+            Term* current = head -> link; // 從頭的下一個開始
+            while (current != head) {
+                Term* temp = current;     // 暫存目前的節點，current跳下一個後就回找不到上一個節點，所以要先暫存
+                current = current -> link;
+                delete temp;
+            }
+            delete head;  // 建構子建出來的需刪掉
+        }
+
+
+        Term* getHead() const { return head; }  // 使外部拿到head
+
+        // 輸入
+        void Input(string name) {
+            int m;
+            cout << "請輸入" << name << "多項式的term數: ";
+            cin >> m;
+
+            Term* last = head;
+
+            for (int i = 0; i < m; i++) {
+                float c;
+                int e;
+                cout << "請輸入第" << i + 1 << "項的coef和exp: ";
+                cin >> c >> e;
+
+                Term* newNode = new Term(c, e, head);  // 新節點指向head
+                last -> link = newNode;
+                last = newNode;
+            }
+        }
+
+        // 輸出
+        void Output() {
+            Term* current = head -> link;  // 從head的下一個開始印
+
+            if (current == head) {    //  零多項式
+                cout << "0" << endl;
+                return;
+            }
+
+            bool first = true;  // 現在是否為第一項(不用印+號)
+
+            while (current != head) {
+                if (current->coef > 0 && !first) cout << "+";  //正負號
+                if (current -> exp == 0) {
+                    cout << current -> coef;  //常數
+                } else {
+                    if (current -> coef == 1) {
+                        cout << "x";
+                    } else if (current -> coef == -1) {
+                        cout << "-x";
+                    } else {
+                        cout << current -> coef << "x";
+                    }
+
+                    if (current -> exp != 1) cout << "^" << current -> exp;
+                }
+
+                first = false;  // 印完第一項關掉旗標
+                current = current -> link;
+            }
+            cout << endl;
+        }
+
+        // 把(c, e)插入到多項式的正確位置
+        void Attach(float c, int e) {
+            if (c == 0) return;
+
+            Term* prev = head;  //記錄前一個節點(插入用)
+            Term* current = head -> link;  //紀錄目前節點(比較指數用)
+
+            while (current != head && current -> exp > e) {
+                prev = current;
+                current = current -> link;
+            }
+
+            // Case 1: 指數同
+            if (current != head && current -> exp == e) {
+                current -> coef += c;
+                if (current -> coef == 0) {
+                    prev -> link = current -> link;
+                    delete current;
+                }
+            }
+            // Case 2: 指數不同
+            else {
+                Term* newNode = new Term(c, e, current);  //建立新節點link指向current
+                prev -> link = newNode;  // 前一個節點link指向新節點
+            }
+        }
+
+        // 多項式乘法
+        Polynomial Multiply(Polynomial& B) {  // 傳B進來與A相乘產生C
+            Polynomial C;
+
+            Term* aPtr = head -> link;  // aPtr指向A的第一項
+            Term* bHead = B.getHead();  
+
+            // 外層迴圈 掃A的每一項
+            while (aPtr != head) {
+                Term* bPtr = bHead -> link;
+
+                // 內層迴圈 掃b的每一項
+                while (bPtr != bHead) {
+                    float c = aPtr -> coef * bPtr -> coef;
+                    int e = aPtr -> exp + bPtr -> exp;
+
+                    C.Attach(c, e);
+                    bPtr = bPtr -> link;
+                }
+                aPtr = aPtr -> link;
+            }
+            return C;
+        }
+};
+
+int main() {
+    Polynomial A, B, C;
+
+    cout << "輸入多項式A: " << endl;
+    A.Input("A");
+
+    cout << "\n輸入多項式B: " << endl;
+    B.Input("B");
+
+    cout << "\nA = "; A.Output();
+    cout << "B = "; B.Output();
+
+    clock_t start = clock();  //計時開始
+    C = A.Multiply(B);
+    clock_t end = clock();  //計時結束
+
+    double time_taken = double(end - start) / CLOCKS_PER_SEC;  //end - start是CPU clock數 需除以每秒頻率
+    cout << "\nC = A * B 結果: ";
+    C.Output();
+
+    cout << "\n運算時間: " << fixed << setprecision(6) << time_taken << " sec" << endl;
+    // 印出小數點後六位
+
+    return 0;
+}
